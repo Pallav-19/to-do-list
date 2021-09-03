@@ -1,25 +1,28 @@
 const express = require("express");
 const app = express();
+const date = require(__dirname+"/date.js")
+
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
+
 let Items = ["Buy Food", "Cook Food", "Eat Food"];
 let works = ["Study"];
 let Assignments = [];
+
+
 app.get("/", function (req, res) {
-  let today = new Date();
-  let options = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  };
-  let day = today.toLocaleDateString("en-US", options);
+ let day =  date();
+
   res.render("list", {
     kindofday: day,
     newitems: Items,
     pl: "New To-Do",
   });
 });
+
 app.get("/work", (req, res) => {
   res.render("list", {
     kindofday: "Work List",
@@ -27,6 +30,7 @@ app.get("/work", (req, res) => {
     pl: "Add Work",
   });
 });
+
 app.get("/assignment", (req, res) => {
   res.render("list", {
     kindofday: "Assignments",
@@ -34,6 +38,7 @@ app.get("/assignment", (req, res) => {
     pl: "Add Assignments",
   });
 });
+
 app.get("/about",(req,res)=>{
   res.render("about");
 });
@@ -54,8 +59,7 @@ app.post("/", (req, res) => {
     res.redirect("/assignment");
   } else if (req.body.button === "c") {
     res.redirect("/work");
-  }
-   else {
+  } else {
     Items.push(Item);
     console.log(Item);
     res.redirect("/");
@@ -63,5 +67,5 @@ app.post("/", (req, res) => {
 });
 
 app.listen(5000, function () {
-  console.log("started at 5000");
+   console.log("started at 5000");
 });
