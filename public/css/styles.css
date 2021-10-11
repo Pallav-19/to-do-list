@@ -52,7 +52,7 @@ p {
   color: #00204a;
 }
 
-form {
+.item {
   text-align: center;
   margin-left: 20px;
 }
@@ -67,7 +67,6 @@ button {
   border-width: 0;
   margin: 1rem;
   border-radius: 5px;
-
 }
 button:hover {
   cursor: pointer;

@@ -1,71 +1,118 @@
 const express = require("express");
 const app = express();
-const date = require(__dirname+"/date.js")
-
+const mongoose = require("mongoose");
+// const date = require(__dirname + "/date.js");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+// database
 
-let Items = ["Buy Food", "Cook Food", "Eat Food"];
-let works = ["Study"];
-let Assignments = [];
+mongoose.connect("mongodb://localhost:27017/todolistDB");
+//create
+const itemSchema = new mongoose.Schema({
+  name: { type: String },
+});
+const Item = mongoose.model("Item", itemSchema);
+
+const listSchema = new mongoose.Schema({
+  name: String,
+  items: [itemSchema],
+});
+const List = mongoose.model("List", listSchema);
+
+const itemOne = new Item({
+  name: "Click on the " + " button to add new ",
+});
+const itemTwo = new Item({
+  name: " write in the input box and press enter",
+});
+const itemThree = new Item({
+  name: "<-click on the check box to delete ",
+});
+const defaultItems = [itemOne, itemTwo, itemThree];
+//Read
 
 
 app.get("/", function (req, res) {
- let day =  date();
+  Item.find({}, function (err, foundItems) {
+    if (foundItems.length === 0) {
+      Item.insertMany(defaultItems, (err) => {
+        if (err) {
+          console.log(err);
+          res.redirect("/");
+        } else {
+          console.log("success");
+        }
+      });
+    }
 
-  res.render("list", {
-    kindofday: day,
-    newitems: Items,
-    pl: "New To-Do",
+    res.render("list", {
+      ListType: "Today",
+      newitems: foundItems,
+      pl: "New Item",
+    });
   });
 });
 
-app.get("/work", (req, res) => {
-  res.render("list", {
-    kindofday: "Work List",
-    newitems: works,
-    pl: "Add Work",
+app.get("/:customListName", (req, res) => {
+  const customListName = req.params.customListName;
+
+  List.findOne({ name: customListName }, (err, foundList) => {
+    if (!err) {
+      if (!foundList) {
+        const list = new List({
+          name: customListName,
+          items: defaultItems,
+        });
+
+        list.save();
+
+        res.redirect("/" + customListName);
+      } else {
+        res.render("list", {
+          ListType: foundList.name,
+          newitems: foundList.items,
+          pl: "New Item",
+        });
+      }
+    }
   });
 });
 
-app.get("/assignment", (req, res) => {
-  res.render("list", {
-    kindofday: "Assignments",
-    newitems: Assignments,
-    pl: "Add Assignments",
+// delete
+app.post("/delete", (req, res) => {
+  const checkedItem = req.body.checkbox;
+  Item.findByIdAndRemove(checkedItem, (err) => {
+    if (err) console.log(err);
+    else {
+      res.redirect("/");
+
+      console.log("success");
+    }
   });
 });
 
-app.get("/about",(req,res)=>{
-  res.render("about");
-});
-
+// add
 app.post("/", (req, res) => {
-  let Item = req.body.newItem;
-  if (req.body.button === "Work List") {
-    works.push(Item);
-    console.log(Item);
-    res.redirect("/work");
-  } else if (req.body.button === "Assignments") {
-    Assignments.push(Item);
-    console.log(Item);
-    res.redirect("/assignment");
-  } else if (req.body.button === "a") {
+  let itemName = req.body.newItem;
+  let listName = req.body.button;
+  const item = new Item({
+    name: itemName,
+  });
+  if (listName === "Today") {
+    item.save();
     res.redirect("/");
-  } else if (req.body.button === "b") {
-    res.redirect("/assignment");
-  } else if (req.body.button === "c") {
-    res.redirect("/work");
   } else {
-    Items.push(Item);
-    console.log(Item);
-    res.redirect("/");
+    List.findOne({ name: listName }, (err, foundList) => {
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect("/" + listName);
+    });
   }
 });
 
 app.listen(5000, function () {
-   console.log("started at 5000");
+  console.log("started at 5000");
 });

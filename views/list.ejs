@@ -1,35 +1,34 @@
-    <%-include("header")-%>
-    <form class="item" action="/" method="post">
-      <button class="btn" name="button" value="a" type="submit">
-        To-Do List
-      </button>
-      <button class="btn" name="button" value="b" type="submit">
-        Assignments
-      </button>
-      <button class="btn" name="button" value="c" type="submit">Works</button>
-    </form>
-    <div class="box" id="heading">
-      <h1><%= kindofday %></h1>
-    </div>
+<%-include("header")-%>
+<!-- <form class="item" action="/" method="post">
+  <button class="btn" name="button" value="a" type="submit">To-Do List</button>
+  <button class="btn" name="button" value="b" type="submit">Assignments</button>
+  <button class="btn" name="button" value="c" type="submit">Works</button>
+</form> -->
+<div class="box" id="heading">
+  <h1><%= ListType %></h1>
+</div>
 
-    <div class="box">
-      <% for (let i=0 ; i < newitems.length; i++){ %>
-      <div class="item">
-        <input type="checkbox" name="" id="" />
-        <p><%= newitems[i] %></p>
-      </div>
+<div class="box">
+  <form action="/delete" method="post">
 
-      <% } %>
+ 
+  <% newitems.forEach((newitem)=>{ %>
+  <div class="item">
+    <input onChange="this.form.submit()" type="checkbox" name="checkbox" id="" value="<%=newitem._id%>" />
+    <p><%= newitem.name %></p>
+  </div>
 
-      <form class="item" action="/" method="post">
-        <input
-          type="text"
-          name="newItem"
-          id=""
-          placeholder="<%=pl%>"
-          autocomplete="off"
-        />
-        <button type="submit" name="button" value="<%= kindofday%>">+</button>
-      </form>
-    </div>
-    <%-include("footer")-%>
+  <% }) %>
+ </form>
+  <form class="item" action="/" method="post">
+    <input
+      type="text"
+      name="newItem"
+      id=""
+      placeholder="<%=pl%>"
+      autocomplete="off"
+    />
+    <button type="submit" name="button" value="<%= ListType%>">+</button>
+  </form>
+</div>
+<%-include("footer")-%>

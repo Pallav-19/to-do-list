@@ -1,6 +1,4 @@
-module.exports = date;
-
-function date() {
+exports.Getdate = () => {
   let today = new Date();
   let options = {
     weekday: "long",
@@ -9,4 +7,13 @@ function date() {
   };
   let day = today.toLocaleDateString("en-US", options);
   return day;
-}
+};
+
+exports.day = () => {
+  let today = new Date();
+  let options = {
+    weekday: "long",
+  };
+  let day = today.toLocaleDateString("en-US", options);
+  return day;
+};
