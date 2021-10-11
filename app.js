@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const _ = require("lodash");
 // const date = require(__dirname + "/date.js");
 
 app.use(express.urlencoded({ extended: true }));
@@ -9,19 +10,21 @@ app.set("view engine", "ejs");
 
 // database
 
-mongoose.connect("mongodb://localhost:27017/todolistDB");
+mongoose.connect(
+  "mongodb+srv://admin-pallav:pallav143@cluster0.vlbno.mongodb.net/todolistDB"
+);
 //create
 const itemSchema = new mongoose.Schema({
   name: { type: String },
 });
 const Item = mongoose.model("Item", itemSchema);
-
+//list schema
 const listSchema = new mongoose.Schema({
   name: String,
   items: [itemSchema],
 });
 const List = mongoose.model("List", listSchema);
-
+//***************************************************************** */
 const itemOne = new Item({
   name: "Click on the " + " button to add new ",
 });
@@ -34,15 +37,15 @@ const itemThree = new Item({
 const defaultItems = [itemOne, itemTwo, itemThree];
 //Read
 
-
 app.get("/", function (req, res) {
   Item.find({}, function (err, foundItems) {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, (err) => {
         if (err) {
           console.log(err);
-          res.redirect("/");
+          
         } else {
+          res.redirect("/");
           console.log("success");
         }
       });
@@ -55,9 +58,9 @@ app.get("/", function (req, res) {
     });
   });
 });
-
+//custom list creation
 app.get("/:customListName", (req, res) => {
-  const customListName = req.params.customListName;
+  const customListName = _.capitalize(req.params.customListName);
 
   List.findOne({ name: customListName }, (err, foundList) => {
     if (!err) {
@@ -84,14 +87,27 @@ app.get("/:customListName", (req, res) => {
 // delete
 app.post("/delete", (req, res) => {
   const checkedItem = req.body.checkbox;
-  Item.findByIdAndRemove(checkedItem, (err) => {
-    if (err) console.log(err);
-    else {
-      res.redirect("/");
+  const listname = req.body.listName;
+  if (listname === "Today") {
+    Item.findByIdAndRemove(checkedItem, (err) => {
+      if (err) console.log(err);
+      else {
+        res.redirect("/");
 
-      console.log("success");
-    }
-  });
+        console.log("success");
+      }
+    });
+  } else {
+    List.findOneAndUpdate(
+      { name: listname },
+      { $pull: { items: { _id: checkedItem } } },
+      (err, foundList) => {
+        if (!err) {
+          res.redirect("/" + listname);
+        }
+      }
+    );
+  }
 });
 
 // add
@@ -113,6 +129,6 @@ app.post("/", (req, res) => {
   }
 });
 
-app.listen(5000, function () {
-  console.log("started at 5000");
+app.listen(process.env.port || 5000, function () {
+  console.log("server started at heroku ");
 });
